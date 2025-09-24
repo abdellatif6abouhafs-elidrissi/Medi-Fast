@@ -1,0 +1,22 @@
+[
+  {
+    "id": "admin-1",
+    "name": "مدير النظام",
+    "email": "admin@example.com",
+    "role": "admin",
+    "phone": "",
+    "address": "",
+    "city": "",
+    "postalCode": ""
+  },
+  {
+    "id": "user-1",
+    "name": "مستخدم تجريبي",
+    "email": "user@example.com",
+    "role": "user",
+    "phone": "",
+    "address": "",
+    "city": "",
+    "postalCode": ""
+  }
+]
