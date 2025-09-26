@@ -154,6 +154,27 @@ const Register = () => {
 
             <FormField
               control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>نوع الحساب</FormLabel>
+                  <FormControl>
+                    <select
+                      {...field}
+                      className="w-full border rounded-md px-3 py-2 bg-white text-gray-900"
+                      disabled={isLoading}
+                    >
+                      <option value="user">مستخدم</option>
+                      <option value="admin">مدير</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
