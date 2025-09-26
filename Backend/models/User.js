@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
     },
     passwordHash: { type: String, required: true },
     role: { type: String, enum: ["admin", "user"], default: "user" },
+    pharmacy: { type: mongoose.Schema.Types.ObjectId, ref: "Pharmacy" },
     phone: { type: String, default: "" },
     address: { type: String, default: "" },
     city: { type: String, default: "" },

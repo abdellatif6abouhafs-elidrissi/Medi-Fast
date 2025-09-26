@@ -18,6 +18,26 @@ const pharmacySchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  rating: {
+    type: Number,
+    default: 5.0,
+    min: 0,
+    max: 5,
+  },
+  specialties: [
+    {
+      type: String,
+    },
+  ],
+  workingHours: {
+    type: String,
+    required: true,
+    default: "8:00 ص - 9:00 م",
+  },
+  image: {
+    type: String,
+    default: "🏪",
+  },
   medicines: [
     {
       name: {

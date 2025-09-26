@@ -11,6 +11,7 @@ import {
   LogOut,
   Languages,
 } from "lucide-react";
+
 import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -96,9 +97,9 @@ const Header = () => {
   // Navigation menu items
   const isAdmin = isAuthenticated && user?.role === "admin";
 
-  // Add notification bell for authenticated users
+  // Add notification bell and theme toggle for authenticated users
   const navItems = (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4"> 
       <Button
         variant="ghost"
         size="icon"

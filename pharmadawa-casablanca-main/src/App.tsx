@@ -12,6 +12,7 @@ import {
 import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
 import { CartProvider } from "./contexts/CartContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -90,7 +91,7 @@ const queryClient = new QueryClient();
 // Component to handle AOS initialization and refresh
 const AOSInitializer = () => {
   const location = useLocation();
-  
+
   useEffect(() => {
     AOS.init({
       duration: 700,
@@ -110,161 +111,163 @@ const AOSInitializer = () => {
 const App = () => {
   return (
     <AuthProvider>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <LanguageProvider>
-            <CartProvider>
-              <TooltipProvider>
-                <BrowserRouter>
-                  <AOSInitializer />
-                  <div className="flex flex-col min-h-screen">
-                    <Header />
-                    <Cart />
-                    <main className="flex-1">
-                      <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/order" element={<Order />} />
-                        <Route
-                          path="/pharmacy-partners"
-                          element={<PharmacyPartners />}
-                        />
-                        <Route
-                          path="/pharmacy/:id/medicines"
-                          element={<PharmacyMedicines />}
-                        />
-                        <Route path="/faqs" element={<FAQs />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/register" element={<Register />} />
-                        <Route
-                          path="/settings"
-                          element={
-                            <RequireAuth>
-                              <AccountSettings />
-                            </RequireAuth>
-                          }
-                        />
-                        <Route
-                          path="/order-completion"
-                          element={
-                            <RequireAuth>
-                              <OrderCompletion />
-                            </RequireAuth>
-                          }
-                        />
-                        <Route
-                          path="/payment"
-                          element={
-                            <RequireAuth>
-                              <PaymentPage />
-                            </RequireAuth>
-                          }
-                        />
-                        <Route
-                          path="/order-confirmation"
-                          element={
-                            <RequireAuth>
-                              <OrderConfirmation />
-                            </RequireAuth>
-                          }
-                        />
+      <NotificationProvider>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            <LanguageProvider>
+              <CartProvider>
+                <TooltipProvider>
+                  <BrowserRouter>
+                    <AOSInitializer />
+                    <div className="flex flex-col min-h-screen">
+                      <Header />
+                      <Cart />
+                      <main className="flex-1">
+                        <Routes>
+                          <Route path="/" element={<Home />} />
+                          <Route path="/order" element={<Order />} />
+                          <Route
+                            path="/pharmacy-partners"
+                            element={<PharmacyPartners />}
+                          />
+                          <Route
+                            path="/pharmacy/:id/medicines"
+                            element={<PharmacyMedicines />}
+                          />
+                          <Route path="/faqs" element={<FAQs />} />
+                          <Route path="/login" element={<Login />} />
+                          <Route path="/register" element={<Register />} />
+                          <Route
+                            path="/settings"
+                            element={
+                              <RequireAuth>
+                                <AccountSettings />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/order-completion"
+                            element={
+                              <RequireAuth>
+                                <OrderCompletion />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/payment"
+                            element={
+                              <RequireAuth>
+                                <PaymentPage />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/order-confirmation"
+                            element={
+                              <RequireAuth>
+                                <OrderConfirmation />
+                              </RequireAuth>
+                            }
+                          />
 
-                        {/* User Dashboard */}
-                        <Route
-                          path="/dashboard"
-                          element={
-                            <RequireAuth>
-                              <Dashboard />
-                            </RequireAuth>
-                          }
-                        />
+                          {/* User Dashboard */}
+                          <Route
+                            path="/dashboard"
+                            element={
+                              <RequireAuth>
+                                <Dashboard />
+                              </RequireAuth>
+                            }
+                          />
 
-                        {/* Admin Dashboard */}
-                        <Route
-                          path="/admin/dashboard"
-                          element={
-                            <RequireAuth roles={["admin"]}>
-                              <AdminDashboard />
-                            </RequireAuth>
-                          }
-                        />
+                          {/* Admin Dashboard */}
+                          <Route
+                            path="/admin/dashboard"
+                            element={
+                              <RequireAuth roles={["admin"]}>
+                                <AdminDashboard />
+                              </RequireAuth>
+                            }
+                          />
 
-                        {/* Redirect old admin route */}
-                        <Route
-                          path="/admin"
-                          element={<Navigate to="/admin/dashboard" replace />}
-                        />
+                          {/* Redirect old admin route */}
+                          <Route
+                            path="/admin"
+                            element={<Navigate to="/admin/dashboard" replace />}
+                          />
 
-                        {/* Admin-specific routes */}
-                        <Route
-                          path="/admin/requests/:id"
-                          element={
-                            <RequireAuth roles={['admin']}>
-                              <OrderDetails />
-                            </RequireAuth>
-                          }
-                        />
-                        <Route
-                          path="/admin/products"
-                          element={
-                            <RequireAuth roles={["admin"]}>
-                              <ProductManagement />
-                            </RequireAuth>
-                          }
-                        />
-                        <Route
-                          path="/admin/users"
-                          element={
-                            <RequireAuth roles={["admin"]}>
-                              <CustomerManagement />
-                            </RequireAuth>
-                          }
-                        />
-                        <Route
-                          path="/admin/orders"
-                          element={
-                            <RequireAuth roles={["admin"]}>
-                              <OrderManagement />
-                            </RequireAuth>
-                          }
-                        />
-                        <Route
-                          path="/admin/reports"
-                          element={
-                            <RequireAuth roles={["admin"]}>
-                              <Reports />
-                            </RequireAuth>
-                          }
-                        />
-                        <Route
-                          path="/admin/categories"
-                          element={
-                            <RequireAuth roles={["admin"]}>
-                              <Categories />
-                            </RequireAuth>
-                          }
-                        />
-                        <Route
-                          path="/admin/settings"
-                          element={
-                            <RequireAuth roles={["admin"]}>
-                              <Settings />
-                            </RequireAuth>
-                          }
-                        />
+                          {/* Admin-specific routes */}
+                          <Route
+                            path="/admin/requests/:id"
+                            element={
+                              <RequireAuth roles={["admin"]}>
+                                <OrderDetails />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/admin/products"
+                            element={
+                              <RequireAuth roles={["admin"]}>
+                                <ProductManagement />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/admin/users"
+                            element={
+                              <RequireAuth roles={["admin"]}>
+                                <CustomerManagement />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/admin/orders"
+                            element={
+                              <RequireAuth roles={["admin"]}>
+                                <OrderManagement />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/admin/reports"
+                            element={
+                              <RequireAuth roles={["admin"]}>
+                                <Reports />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/admin/categories"
+                            element={
+                              <RequireAuth roles={["admin"]}>
+                                <Categories />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/admin/settings"
+                            element={
+                              <RequireAuth roles={["admin"]}>
+                                <Settings />
+                              </RequireAuth>
+                            }
+                          />
 
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </main>
-                    <Footer />
-                  </div>
-                </BrowserRouter>
-                <Toaster />
-                <Sonner />
-              </TooltipProvider>
-            </CartProvider>
-          </LanguageProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </main>
+                      <Footer />
+                    </div>
+                  </BrowserRouter>
+                  <Toaster />
+                  <Sonner />
+                </TooltipProvider>
+              </CartProvider>
+            </LanguageProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </NotificationProvider>
     </AuthProvider>
   );
 };
