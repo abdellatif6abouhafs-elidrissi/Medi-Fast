@@ -73,12 +73,17 @@ const Register = () => {
   const onSubmit = async (data: RegisterFormValues) => {
     try {
       setIsLoading(true);
+      form.reset({
+        ...data,
+        password: "",
+        confirmPassword: "",
+      });
 
       // Call your auth register function
-      const user = await authRegister({
+      const result = await authRegister({
         email: data.email,
         password: data.password,
-        name: `${data.firstName} ${data.lastName}`,
+        name: `${data.firstName} ${data.lastName}`.trim(),
         phone: data.phone,
         address: data.address,
         city: data.city,
@@ -86,9 +91,29 @@ const Register = () => {
         role: data.role,
       });
 
-      setUserData(user);
-      setRegistrationSuccess(true);
+      if (!result.success) {
+        const errorMessages = {
+          "Email already exists": "البريد الإلكتروني مستخدم بالفعل",
+          "Registration failed": "فشل في إنشاء الحساب",
+          "An unexpected error occurred": "حدث خطأ غير متوقع",
+        };
 
+        toast({
+          variant: "destructive",
+          title: "خطأ في التسجيل",
+          description:
+            errorMessages[result.error as keyof typeof errorMessages] ||
+            result.error ||
+            "فشل في إنشاء الحساب",
+        });
+
+        // Clear sensitive fields on error
+        form.setValue("password", "");
+        form.setValue("confirmPassword", "");
+        return;
+      }
+
+      setRegistrationSuccess(true);
       toast({
         title: "تم التسجيل بنجاح",
         description: "تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول.",
@@ -274,7 +299,32 @@ const Register = () => {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "جاري التسجيل..." : "تسجيل حساب جديد"}
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <svg
+                    className="animate-spin h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  جاري التسجيل...
+                </div>
+              ) : (
+                "تسجيل حساب جديد"
+              )}
             </Button>
           </form>
         </Form>

@@ -42,10 +42,58 @@ const Order = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // State for pharmacies
+  const [pharmacies, setPharmacies] = useState([]);
+  const [selectedPharmacy, setSelectedPharmacy] = useState(null);
+  const [loadingPharmacies, setLoadingPharmacies] = useState(true);
+
+  // Fetch pharmacies on component mount and refresh every 30 seconds
+  useEffect(() => {
+    const fetchPharmacies = async () => {
+      try {
+        setLoadingPharmacies(true);
+        const token = localStorage.getItem("token");
+        const response = await fetch(
+          `${
+            import.meta.env.VITE_API_BASE_URL || "http://localhost:4000"
+          }/api/pharmacies`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch pharmacies");
+        }
+
+        const data = await response.json();
+        setPharmacies(data.pharmacies);
+      } catch (error) {
+        console.error("Error fetching pharmacies:", error);
+        toast({
+          title: "خطأ",
+          description: "فشل في تحميل قائمة الصيدليات",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingPharmacies(false);
+      }
+    };
+
+    fetchPharmacies();
+    const interval = setInterval(fetchPharmacies, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Form validation function
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+
+    if (!selectedPharmacy) {
+      newErrors.pharmacy = "يرجى اختيار صيدلية";
+    }
 
     if (!formData.name.trim()) {
       newErrors.name = "الاسم الكامل مطلوب";
@@ -69,6 +117,10 @@ const Order = () => {
 
     if (!formData.medicineName.trim() && !formData.prescription) {
       newErrors.medicineName = "اسم الدواء مطلوب أو ارفع صورة الوصفة";
+    }
+
+    if (!selectedPharmacy) {
+      newErrors.pharmacy = "يرجى اختيار صيدلية";
     }
 
     setErrors(newErrors);
@@ -133,8 +185,33 @@ const Order = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_BASE_URL || "http://localhost:4000"
+        }/api/orders`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            pharmacyId: selectedPharmacy?.id,
+            medicineName: formData.medicineName,
+            quantity: 1,
+            address: formData.address,
+            phone: formData.phone,
+            notes: formData.notes,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "فشل في إرسال الطلب");
+      }
 
       toast({
         title: "تم إرسال الطلب بنجاح!",
@@ -150,6 +227,7 @@ const Order = () => {
         notes: "",
         prescription: null,
       });
+      setSelectedPharmacy(null);
 
       // Reset file input
       const fileInput = document.getElementById(
@@ -198,6 +276,51 @@ const Order = () => {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Pharmacy Selection */}
+                  <div className="space-y-4">
+                    <h3 className="font-arabic-display text-lg font-semibold text-primary">
+                      اختيار الصيدلية
+                    </h3>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="pharmacy"
+                        className="font-arabic flex items-center space-x-2 space-x-reverse"
+                      >
+                        <MapPin className="w-4 h-4" />
+                        <span>الصيدلية *</span>
+                      </Label>
+                      <select
+                        id="pharmacy"
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        value={selectedPharmacy?.id || ""}
+                        onChange={(e) => {
+                          const pharmacy = pharmacies.find(
+                            (p) => p.id === e.target.value
+                          );
+                          setSelectedPharmacy(pharmacy || null);
+                          if (errors.pharmacy) {
+                            setErrors((prev) => ({ ...prev, pharmacy: "" }));
+                          }
+                        }}
+                        disabled={isSubmitting}
+                      >
+                        <option value="">اختر الصيدلية</option>
+                        {pharmacies.map((pharmacy) => (
+                          <option key={pharmacy.id} value={pharmacy.id}>
+                            {pharmacy.name}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.pharmacy && (
+                        <p className="text-destructive text-sm font-arabic flex items-center space-x-1 space-x-reverse">
+                          <AlertCircle className="w-4 h-4" />
+                          <span>{errors.pharmacy}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Personal information */}
                   <div className="space-y-4">
                     <h3 className="font-arabic-display text-lg font-semibold text-primary">
@@ -364,6 +487,72 @@ const Order = () => {
                         className="font-arabic"
                         rows={3}
                       />
+                    </div>
+                  </div>
+
+                  {/* Pharmacy selection */}
+                  <div className="space-y-4 border-t pt-6">
+                    <h3 className="font-arabic-display text-lg font-semibold text-primary">
+                      اختر الصيدلية
+                    </h3>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="pharmacy"
+                        className="font-arabic flex items-center space-x-2 space-x-reverse"
+                      >
+                        <MapPin className="w-4 h-4" />
+                        <span>الصيدلية *</span>
+                      </Label>
+                      <div className="relative">
+                        <select
+                          id="pharmacy"
+                          value={selectedPharmacy?.id || ""}
+                          onChange={(e) => {
+                            const pharmacyId = e.target.value;
+                            const pharmacy = pharmacies.find(
+                              (p) => p.id === pharmacyId
+                            );
+                            setSelectedPharmacy(pharmacy || null);
+                            // Clear pharmacy error if a valid pharmacy is selected
+                            if (errors.pharmacy) {
+                              setErrors((prev) => ({ ...prev, pharmacy: "" }));
+                            }
+                          }}
+                          className={`block appearance-none w-full bg-white border rounded-lg shadow-sm focus:ring-2 focus:ring-primary focus:outline-none font-arabic ${
+                            errors.pharmacy ? "border-destructive" : ""
+                          }`}
+                        >
+                          <option value="">اختر صيدلية</option>
+                          {pharmacies.map((pharmacy) => (
+                            <option key={pharmacy.id} value={pharmacy.id}>
+                              {pharmacy.name}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                          <svg
+                            className="w-5 h-5 text-muted-foreground"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M6 9l6 6 6-6"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                      {errors.pharmacy && (
+                        <p className="text-destructive text-sm font-arabic flex items-center space-x-1 space-x-reverse">
+                          <AlertCircle className="w-4 h-4" />
+                          <span>{errors.pharmacy}</span>
+                        </p>
+                      )}
                     </div>
                   </div>
 

@@ -34,7 +34,7 @@ type AuthContextType = {
     address?: string;
     city?: string;
     postalCode?: string;
-  }) => Promise<boolean>;
+  }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
   loading: boolean;
@@ -149,7 +149,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     address?: string;
     city?: string;
     postalCode?: string;
-  }): Promise<boolean> => {
+  }): Promise<{ success: boolean; error?: string }> => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/auth/register`, {
@@ -157,18 +157,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
       });
-      if (!res.ok) return false;
       const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 409) {
+          return { success: false, error: "Email already exists" };
+        }
+        return { success: false, error: data.message || "Registration failed" };
+      }
+
       const mapped = mapBackendUser(data.user);
       localStorage.setItem("user", JSON.stringify(mapped));
       localStorage.setItem("token", data.token);
       localStorage.setItem("isAuthenticated", "true");
       setUser(mapped);
       setIsAuthenticated(true);
-      return true;
+      return { success: true };
     } catch (error) {
       console.error("Registration error:", error);
-      return false;
+      return { success: false, error: "An unexpected error occurred" };
     } finally {
       setLoading(false);
     }
