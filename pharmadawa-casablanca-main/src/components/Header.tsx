@@ -11,7 +11,6 @@ import {
   LogOut,
   Languages,
 } from "lucide-react";
-import { NotificationBell } from "./NotificationBell";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -100,7 +99,6 @@ const Header = () => {
   // Add notification bell for authenticated users
   const navItems = (
     <div className="flex items-center gap-4">
-      {isAuthenticated && <NotificationBell />}
       <Button
         variant="ghost"
         size="icon"
