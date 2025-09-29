@@ -160,7 +160,7 @@ const MedicineManagement = () => {
       manufacturer: formData.manufacturer.trim() || undefined,
       dosage: formData.dosage.trim() || undefined,
       prescription: formData.prescription === "true",
-      pharmacyId: user?.id || "default-pharmacy", // Use actual pharmacy ID
+      pharmacyId: user?.pharmacy || user?.pharmacyId || user?.id || "default-pharmacy", // Use admin's pharmacy reference
     };
 
     try {

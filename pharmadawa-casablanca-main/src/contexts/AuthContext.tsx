@@ -15,6 +15,16 @@ type User = {
   address?: string;
   city?: string;
   postalCode?: string;
+  // Pharmacy reference for admin users (ObjectId from backend)
+  pharmacy?: string;
+  // Pharmacy information for admin users (cached/fallback data)
+  pharmacyId?: string;
+  pharmacyName?: string;
+  pharmacySpecialties?: string[];
+  pharmacyWorkingHours?: string;
+  pharmacyImage?: string;
+  pharmacyAddress?: string;
+  pharmacyPhone?: string;
 };
 
 type FeatureFlags = {
@@ -69,6 +79,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     address: u.address,
     city: u.city,
     postalCode: u.postalCode,
+    // Pharmacy reference (ObjectId from backend)
+    pharmacy: u.pharmacy,
+    // Pharmacy information for admin users (cached/fallback data)
+    pharmacyId: u.pharmacyId,
+    pharmacyName: u.pharmacyName,
+    pharmacySpecialties: u.pharmacySpecialties,
+    pharmacyWorkingHours: u.pharmacyWorkingHours,
+    pharmacyImage: u.pharmacyImage,
+    pharmacyAddress: u.pharmacyAddress,
+    pharmacyPhone: u.pharmacyPhone,
   });
 
   const updateFeatures = (newFeatures: Partial<FeatureFlags>) => {

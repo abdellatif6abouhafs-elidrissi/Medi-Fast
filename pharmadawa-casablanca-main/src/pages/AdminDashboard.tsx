@@ -95,59 +95,125 @@ const AdminDashboard = () => {
           return;
         }
 
-        // Always use mock data for demo
-        const mockPharmacy = {
-          id: "mock-pharmacy-1",
-          name: "صيدلية الشفاء",
-          address: "شارع محمد الخامس، الدار البيضاء",
-          phone: "0522123456",
-          specialties: ["أدوية عامة", "أدوية الأطفال", "مستحضرات التجميل"],
-          workingHours: "8:00 ص - 9:00 م",
-          image: "🏪",
-          medicines: [
-            { name: "باراسيتامول 500mg", description: "مسكن للألم", price: 15.50, inStock: true },
-            { name: "إيبوبروفين 400mg", description: "مضاد للالتهاب", price: 25.00, inStock: true },
-            { name: "فيتامين د3", description: "مكمل غذائي", price: 35.00, inStock: false },
-          ],
-        };
-
-        const mockStats = {
-          totalOrders: 12,
-          pendingOrders: 3,
-          completedOrders: 8,
-          unreadNotifications: 2,
-        };
-
-        const mockRecentOrders = [
-          {
-            _id: "order-1",
-            medicine: { name: "باراسيتامول 500mg", quantity: 2 },
-            user: { name: "أحمد محمد", email: "ahmed@example.com", phone: "0612345678" },
-            address: "شارع الحسن الثاني، الدار البيضاء",
-            phone: "0612345678",
-            status: "pending" as const,
-            createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          },
-          {
-            _id: "order-2",
-            medicine: { name: "إيبوبروفين 400mg", quantity: 1 },
-            user: { name: "فاطمة الزهراء", email: "fatima@example.com", phone: "0623456789" },
-            address: "حي المعاريف، الرباط",
-            phone: "0623456789",
-            status: "accepted" as const,
-            createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-          },
-        ];
-
-        setPharmacy(mockPharmacy);
-        setHasPharmacy(true);
-        setStats(mockStats);
-        setRecentOrders(mockRecentOrders);
+        // Get pharmacy ID for API calls (use pharmacy reference from admin model)
+        const pharmacyId = user?.pharmacy || user?.pharmacyId || user?.id;
         
-        toast({
-          title: "وضع التجريب",
-          description: "تم تحميل بيانات تجريبية. سيتم الاتصال بالخادم عند توفره.",
-        });
+        try {
+          const pharmacyResponse = await fetch(`${API_BASE}/api/pharmacy/${pharmacyId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (pharmacyResponse.ok) {
+            const pharmacyData = await pharmacyResponse.json();
+            setPharmacy(pharmacyData);
+            setHasPharmacy(true);
+          } else {
+            // Fallback to user profile data if API fails
+            if (user?.pharmacyId || user?.pharmacyName || user?.role === "admin") {
+              const userPharmacy = {
+                id: user.pharmacyId || user.id || "admin-pharmacy",
+                name: user.pharmacyName || `صيدلية ${user.name}`,
+                address: user.pharmacyAddress || "العنوان غير محدد",
+                phone: user.pharmacyPhone || user.phone || "الهاتف غير محدد",
+                specialties: user.pharmacySpecialties || ["أدوية عامة"],
+                workingHours: user.pharmacyWorkingHours || "8:00 ص - 9:00 م",
+                image: user.pharmacyImage || "🏪",
+                medicines: [],
+              };
+              
+              setPharmacy(userPharmacy);
+              setHasPharmacy(true);
+            } else {
+              setHasPharmacy(false);
+            }
+          }
+        } catch (pharmacyError) {
+          console.log("Pharmacy API not available, using user profile data");
+          // Fallback to user profile data - assume admin users have a pharmacy
+          if (user?.role === "admin") {
+            const userPharmacy = {
+              id: user.pharmacyId || user.id || "admin-pharmacy",
+              name: user.pharmacyName || `صيدلية ${user.name}`,
+              address: user.pharmacyAddress || "العنوان غير محدد",
+              phone: user.pharmacyPhone || user.phone || "الهاتف غير محدد",
+              specialties: user.pharmacySpecialties || ["أدوية عامة"],
+              workingHours: user.pharmacyWorkingHours || "8:00 ص - 9:00 م",
+              image: user.pharmacyImage || "🏪",
+              medicines: [],
+            };
+            
+            setPharmacy(userPharmacy);
+            setHasPharmacy(true);
+          } else {
+            setHasPharmacy(false);
+          }
+        }
+
+        // Fetch real pharmacy statistics and orders
+        
+        try {
+          // Fetch pharmacy statistics
+          const statsResponse = await fetch(`${API_BASE}/api/admin/pharmacy/${pharmacyId}/stats`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (statsResponse.ok) {
+            const statsData = await statsResponse.json();
+            setStats(statsData);
+          } else {
+            // Fallback to default stats if API fails
+            setStats({
+              totalOrders: 0,
+              pendingOrders: 0,
+              completedOrders: 0,
+              unreadNotifications: 0,
+            });
+          }
+
+          // Fetch recent orders for this pharmacy
+          const ordersResponse = await fetch(`${API_BASE}/api/admin/pharmacy/${pharmacyId}/orders?limit=5&sort=createdAt&order=desc`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (ordersResponse.ok) {
+            const ordersData = await ordersResponse.json();
+            setRecentOrders(ordersData.orders || []);
+          } else {
+            // Fallback to empty orders if API fails
+            setRecentOrders([]);
+          }
+        } catch (apiError) {
+          console.log("API not available, using fallback data");
+          // Fallback stats and orders for development
+          setStats({
+            totalOrders: 0,
+            pendingOrders: 0,
+            completedOrders: 0,
+            unreadNotifications: 0,
+          });
+          setRecentOrders([]);
+        }
+        
+        if (user?.pharmacyId) {
+          toast({
+            title: "تم التحميل بنجاح",
+            description: `مرحباً بك في لوحة تحكم ${user.pharmacyName}`,
+          });
+        } else {
+          toast({
+            title: "وضع التجريب",
+            description: "تم تحميل بيانات تجريبية. يرجى إكمال معلومات الصيدلية.",
+          });
+        }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         toast({
@@ -160,8 +226,10 @@ const AdminDashboard = () => {
       }
     };
 
-    fetchAdminData();
-  }, [navigate, toast, API_BASE]);
+    if (user) {
+      fetchAdminData();
+    }
+  }, [user, navigate, toast, API_BASE]);
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
@@ -186,29 +254,8 @@ const AdminDashboard = () => {
     );
   }
 
-  if (!hasPharmacy) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-2xl mx-auto">
-          <CardHeader className="text-center">
-            <Store className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <CardTitle className="text-2xl">لا توجد صيدلية مرتبطة بحسابك</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-muted-foreground mb-6">
-              يجب إنشاء صيدلية أولاً للوصول إلى لوحة التحكم
-            </p>
-            <Button asChild>
-              <Link to="/pharmacy-partners">
-                <Store className="ml-2 h-4 w-4" />
-                إنشاء صيدلية
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Admin users always have access to dashboard
+  // Remove the "no pharmacy" blocking screen
 
   return (
     <div className="container mx-auto px-4 py-8" data-aos="fade-up">

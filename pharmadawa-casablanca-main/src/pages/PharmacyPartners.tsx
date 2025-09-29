@@ -219,214 +219,9 @@ const PharmacyPartners = () => {
           ))}
         </div>
 
-        {/* Join as pharmacy button (admins only) */}
-        {user?.role === "admin" && (
-          <div
-            className="text-center mb-12"
-            data-aos="fade-up"
-            data-aos-delay="100"
-          >
-            <Button
-              size="lg"
-              onClick={() => setShowJoinForm(!showJoinForm)}
-              className="font-arabic text-lg px-8 py-3 animate-pulse-glow"
-            >
-              <Handshake className="w-5 h-5 ml-2" />
-              {showJoinForm ? "إخفاء النموذج" : "انضم كصيدلية شريكة"}
-            </Button>
-          </div>
-        )}
+        
 
-        {/* Join form (admins only) */}
-        {user?.role === "admin" && showJoinForm && (
-          <Card
-            className="mb-12 shadow-medium"
-            data-aos="fade-up"
-            data-aos-delay="150"
-          >
-            <CardHeader>
-              <CardTitle className="font-arabic-display text-2xl text-center">
-                انضم إلى شبكة الصيدليات الشريكة
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleJoinSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Pharmacy Details */}
-                  <div className="space-y-2">
-                    <Label htmlFor="pharmacyName" className="font-arabic">اسم الصيدلية *</Label>
-                    <Input
-                      id="pharmacyName"
-                      placeholder="أدخل اسم الصيدلية"
-                      value={joinFormData.pharmacyName}
-                      onChange={(e) => handleJoinInputChange("pharmacyName", e.target.value)}
-                      className="font-arabic"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="ownerName" className="font-arabic">اسم المالك *</Label>
-                    <Input
-                      id="ownerName"
-                      placeholder="أدخل اسم المالك"
-                      value={joinFormData.ownerName}
-                      onChange={(e) => handleJoinInputChange("ownerName", e.target.value)}
-                      className="font-arabic"
-                      required
-                    />
-                  </div>
-
-                  {/* Contact Information */}
-                  <div className="space-y-2">
-                    <Label htmlFor="joinPhone" className="font-arabic">رقم الهاتف *</Label>
-                    <Input
-                      id="joinPhone"
-                      placeholder="0612345678"
-                      value={joinFormData.phone}
-                      onChange={(e) => handleJoinInputChange("phone", e.target.value)}
-                      className="font-arabic"
-                      dir="ltr"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="joinEmail" className="font-arabic">البريد الإلكتروني *</Label>
-                    <Input
-                      id="joinEmail"
-                      type="email"
-                      placeholder="pharmacy@example.com"
-                      value={joinFormData.email}
-                      onChange={(e) => handleJoinInputChange("email", e.target.value)}
-                      className="font-arabic"
-                      dir="ltr"
-                      required
-                    />
-                  </div>
-
-                  {/* Password Field */}
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="font-arabic">كلمة المرور *</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="أدخل كلمة المرور"
-                      value={joinFormData.password}
-                      onChange={(e) => handleJoinInputChange("password", e.target.value)}
-                      className="font-arabic"
-                      required
-                    />
-                  </div>
-
-                  {/* Working Hours */}
-                  <div className="space-y-2">
-                    <Label htmlFor="workingHours" className="font-arabic">ساعات العمل</Label>
-                    <Input
-                      id="workingHours"
-                      placeholder="مثال: 8:00 ص - 9:00 م"
-                      value={joinFormData.workingHours}
-                      onChange={(e) => handleJoinInputChange("workingHours", e.target.value)}
-                      className="font-arabic"
-                    />
-                  </div>
-
-                  {/* License Number */}
-                  <div className="space-y-2">
-                    <Label htmlFor="license" className="font-arabic">رقم الترخيص</Label>
-                    <Input
-                      id="license"
-                      placeholder="رقم ترخيص الصيدلية"
-                      value={joinFormData.license}
-                      onChange={(e) => handleJoinInputChange("license", e.target.value)}
-                      className="font-arabic"
-                    />
-                  </div>
-
-                  {/* Pharmacy Icon */}
-                  <div className="space-y-2">
-                    <Label htmlFor="image" className="font-arabic">أيقونة الصيدلية</Label>
-                    <select
-                      id="image"
-                      value={joinFormData.image}
-                      onChange={(e) => handleJoinInputChange("image", e.target.value)}
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    >
-                      <option value="🏪">🏪 صيدلية</option>
-                      <option value="💊">💊 دواء</option>
-                      <option value="👨‍⚕️">👨‍⚕️ طبيب</option>
-                      <option value="🌿">🌿 طبيعي</option>
-                      <option value="❤️">❤️ صحة</option>
-                      <option value="🌟">🌟 نجمة</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Full Width Fields */}
-                <div className="space-y-2">
-                  <Label htmlFor="joinAddress" className="font-arabic">العنوان الكامل *</Label>
-                  <Textarea
-                    id="joinAddress"
-                    placeholder="أدخل عنوان الصيدلية بالتفصيل"
-                    value={joinFormData.address}
-                    onChange={(e) => handleJoinInputChange("address", e.target.value)}
-                    className="font-arabic"
-                    rows={2}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="specialties" className="font-arabic">التخصصات</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      "أدوية عامة",
-                      "أدوية الأطفال",
-                      "رعاية كبار السن",
-                      "أدوية القلب",
-                      "مستحضرات التجميل",
-                      "أجهزة طبية",
-                      "مكملات غذائية",
-                      "أعشاب طبية",
-                    ].map((specialty) => (
-                      <label key={specialty} className="flex items-center space-x-2 space-x-reverse">
-                        <input
-                          type="checkbox"
-                          checked={joinFormData.specialties.includes(specialty)}
-                          onChange={(e) => {
-                            const specialties = e.target.checked
-                              ? [...joinFormData.specialties, specialty]
-                              : joinFormData.specialties.filter(s => s !== specialty);
-                            handleJoinInputChange("specialties", specialties);
-                          }}
-                          className="form-checkbox h-4 w-4"
-                        />
-                        <span className="font-arabic text-sm">{specialty}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="font-arabic">وصف الخدمات</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="صف الخدمات والتخصصات التي تقدمها صيدليتك"
-                    value={joinFormData.description}
-                    onChange={(e) => handleJoinInputChange("description", e.target.value)}
-                    className="font-arabic"
-                    rows={3}
-                  />
-                </div>
-
-                <Button type="submit" className="w-full font-arabic text-lg py-3">
-                  إنشاء حساب صيدلية
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        )}
-
+        
         {/* Partner pharmacies list */}
         <div className="space-y-8" data-aos="fade-up">
           <h2 className="font-arabic-display text-3xl font-bold text-center text-gradient">
