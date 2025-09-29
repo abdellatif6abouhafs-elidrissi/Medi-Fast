@@ -7,6 +7,13 @@ import { useToast } from "@/components/ui/use-toast";
 import {
   Loader2,
   Package,
+  User,
+  CreditCard,
+  LogOut,
+  Shield,
+  Users,
+  Settings,
+  BarChart3,
   Store,
   Bell,
   Eye,
@@ -95,7 +102,86 @@ const AdminDashboard = () => {
           return;
         }
 
-        // Always use mock data for demo
+        const response = await fetch(`${API_BASE}/api/admin/dashboard`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          // If API endpoint doesn't exist, create mock data for demo
+          console.log("API endpoint not available, using mock dashboard data");
+          
+          const mockPharmacy = {
+            id: "mock-pharmacy-1",
+            name: "صيدلية الشفاء",
+            address: "شارع محمد الخامس، الدار البيضاء",
+            phone: "0522123456",
+            specialties: ["أدوية عامة", "أدوية الأطفال", "مستحضرات التجميل"],
+            workingHours: "8:00 ص - 9:00 م",
+            image: "🏪",
+            medicines: [
+              { name: "باراسيتامول 500mg", description: "مسكن للألم", price: 15.50, inStock: true },
+              { name: "إيبوبروفين 400mg", description: "مضاد للالتهاب", price: 25.00, inStock: true },
+              { name: "فيتامين د3", description: "مكمل غذائي", price: 35.00, inStock: false },
+            ],
+          };
+
+          const mockStats = {
+            totalOrders: 12,
+            pendingOrders: 3,
+            completedOrders: 8,
+            unreadNotifications: 2,
+          };
+
+          const mockRecentOrders = [
+            {
+              _id: "order-1",
+              medicine: { name: "باراسيتامول 500mg", quantity: 2 },
+              user: { name: "أحمد محمد", email: "ahmed@example.com", phone: "0612345678" },
+              address: "شارع الحسن الثاني، الدار البيضاء",
+              phone: "0612345678",
+              status: "pending" as const,
+              createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            },
+            {
+              _id: "order-2",
+              medicine: { name: "إيبوبروفين 400mg", quantity: 1 },
+              user: { name: "فاطمة الزهراء", email: "fatima@example.com", phone: "0623456789" },
+              address: "حي المعاريف، الرباط",
+              phone: "0623456789",
+              status: "accepted" as const,
+              createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+            },
+          ];
+
+          setPharmacy(mockPharmacy);
+          setHasPharmacy(true);
+          setStats(mockStats);
+          setRecentOrders(mockRecentOrders);
+          return;
+        }
+
+        const data = await response.json();
+        
+        if (data.hasPharmacy) {
+          setPharmacy(data.pharmacy);
+          setHasPharmacy(true);
+          setStats(data.statistics || {
+            totalOrders: 0,
+            pendingOrders: 0,
+            completedOrders: 0,
+            unreadNotifications: 0,
+          });
+          setRecentOrders(data.orders || []);
+        } else {
+          setHasPharmacy(false);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+        
+        // Even on error, provide mock data for demo
         const mockPharmacy = {
           id: "mock-pharmacy-1",
           name: "صيدلية الشفاء",
@@ -147,13 +233,6 @@ const AdminDashboard = () => {
         toast({
           title: "وضع التجريب",
           description: "تم تحميل بيانات تجريبية. سيتم الاتصال بالخادم عند توفره.",
-        });
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        toast({
-          title: "خطأ",
-          description: "فشل في تحميل بيانات لوحة التحكم",
-          variant: "destructive",
         });
       } finally {
         setLoading(false);
@@ -384,17 +463,17 @@ const AdminDashboard = () => {
                           </span>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          العميل: {order.user.name}
+                          العميل: {order.user.name} • {order.user.phone}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {new Date(order.createdAt).toLocaleDateString('ar-MA')}
+                          {new Date(order.createdAt).toLocaleDateString('ar-SA')}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {getStatusBadge(order.status)}
-                        <Button asChild variant="outline" size="sm">
+                        <Button asChild variant="ghost" size="sm">
                           <Link to={`/admin/orders/${order._id}`}>
-                            <Eye className="h-3 w-3" />
+                            <Eye className="h-4 w-4" />
                           </Link>
                         </Button>
                       </div>
@@ -406,31 +485,93 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions & Profile */}
         <div className="space-y-6">
+          {/* Quick Actions */}
           <Card data-aos="fade-up" data-aos-delay="150">
             <CardHeader>
-              <CardTitle>إجراءات سريعة</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                إجراءات سريعة
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link to="/admin/orders">
+                    <Package className="h-4 w-4 ml-2" />
+                    إدارة الطلبات
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link to="/admin/medicines">
+                    <Pill className="h-4 w-4 ml-2" />
+                    إدارة الأدوية
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link to="/admin/pharmacy/edit">
+                    <Edit className="h-4 w-4 ml-2" />
+                    تعديل الصيدلية
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link to="/admin/reports">
+                    <BarChart3 className="h-4 w-4 ml-2" />
+                    التقارير
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Admin Profile */}
+          <Card data-aos="fade-up" data-aos-delay="200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                الملف الشخصي
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button asChild className="w-full justify-start">
-                <Link to="/admin/medicines">
-                  <Pill className="h-4 w-4 ml-2" />
-                  إدارة الأدوية
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="w-full justify-start">
-                <Link to="/admin/orders">
-                  <Package className="h-4 w-4 ml-2" />
-                  عرض جميع الطلبات
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="w-full justify-start">
-                <Link to="/admin/pharmacy/edit">
-                  <Edit className="h-4 w-4 ml-2" />
-                  تعديل معلومات الصيدلية
-                </Link>
-              </Button>
+              <div className="flex items-center justify-center mb-4">
+                <div className="relative">
+                  <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-10 w-10 text-primary" />
+                  </div>
+                  <div className="absolute bottom-0 right-0 h-5 w-5 rounded-full bg-green-500 border-2 border-white"></div>
+                </div>
+              </div>
+
+              <div className="space-y-2 text-center">
+                <h3 className="font-medium">{user?.name}</h3>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
+                <Badge variant="secondary">مدير صيدلية</Badge>
+              </div>
+
+              <div className="pt-4 space-y-2">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link to="/settings">
+                    <Settings className="ml-2 h-4 w-4" />
+                    إعدادات الحساب
+                  </Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-destructive hover:text-destructive"
+                  onClick={() => {
+                    logout();
+                    navigate("/login");
+                  }}
+                >
+                  <LogOut className="ml-2 h-4 w-4" />
+                  تسجيل الخروج
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

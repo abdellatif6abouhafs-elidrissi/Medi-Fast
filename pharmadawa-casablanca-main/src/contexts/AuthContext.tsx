@@ -34,6 +34,11 @@ type AuthContextType = {
     address?: string;
     city?: string;
     postalCode?: string;
+    // Admin/Pharmacy specific fields
+    pharmacyName?: string;
+    pharmacySpecialties?: string[];
+    pharmacyWorkingHours?: string;
+    pharmacyImage?: string;
   }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -149,6 +154,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     address?: string;
     city?: string;
     postalCode?: string;
+    // Admin/Pharmacy specific fields
+    pharmacyName?: string;
+    pharmacySpecialties?: string[];
+    pharmacyWorkingHours?: string;
+    pharmacyImage?: string;
   }): Promise<{ success: boolean; error?: string }> => {
     setLoading(true);
     try {

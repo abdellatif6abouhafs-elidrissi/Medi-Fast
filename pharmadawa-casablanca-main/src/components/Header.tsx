@@ -82,7 +82,6 @@ const Header = () => {
   const { theme, setTheme } = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
 
   // Handle scroll effect for sticky navigation
@@ -115,10 +114,12 @@ const Header = () => {
   );
 
   const menuItems = [
-    // Conditionally add Home and FAQ links
-    ...(!isAdmin
+    // Always show Home link
+    { href: "/", label: "الرئيسية", isActive: location.pathname === "/" },
+    
+    // Show FAQ only for authenticated users or on home page
+    ...(isAuthenticated || location.pathname === "/"
       ? [
-          { href: "/", label: "الرئيسية", isActive: location.pathname === "/" },
           {
             href: "/faqs",
             label: "الأسئلة الشائعة",
@@ -126,6 +127,7 @@ const Header = () => {
           },
         ]
       : []),
+    
     // Only show order link for authenticated non-admin users
     ...(isAuthenticated && !isAdmin
       ? [
@@ -136,31 +138,19 @@ const Header = () => {
           },
         ]
       : []),
-    {
-      href: "/pharmacy-partners",
-      label: "الصيدليات الشريكة",
-      isActive: location.pathname === "/pharmacy-partners",
-    },
-    // Admin-only link
-    ...(isAdmin
+    
+    // Show pharmacy partners only for authenticated users
+    ...(isAuthenticated
       ? [
           {
-            href: "/admin/dashboard",
-            label: "لوحة التحكم",
-            isActive: location.pathname.startsWith("/admin"),
+            href: "/pharmacy-partners",
+            label: "الصيدليات الشريكة",
+            isActive: location.pathname === "/pharmacy-partners",
           },
         ]
       : []),
-    // User-only link
-    ...(isAuthenticated && user?.role === "user"
-      ? [
-          {
-            href: "/dashboard",
-            label: "حسابي",
-            isActive: location.pathname === "/dashboard",
-          },
-        ]
-      : []),
+    
+    
   ].filter(Boolean);
 
   // Toggle dark/light mode
@@ -170,14 +160,17 @@ const Header = () => {
 
   const handleLogout = () => {
     logout();
-    setShowUserMenu(false);
     navigate("/");
   };
 
-  const handleAdminClick = () => {
-    navigate("/admin");
-    setShowUserMenu(false);
+  const handleUserClick = () => {
+    if (user?.role === "admin") {
+      navigate("/admin/dashboard");
+    } else {
+      navigate("/dashboard");
+    }
   };
+
 
   return (
     <>
@@ -254,44 +247,25 @@ const Header = () => {
                 )}
               </Button>
               {isAuthenticated ? (
-                <div className="relative">
+                <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     className="flex items-center gap-2"
-                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    onClick={handleUserClick}
                   >
                     <User className="w-4 h-4" />
                     <span>{user?.name || "حسابي"}</span>
                   </Button>
-
-                  <AnimatePresence>
-                    {showUserMenu && (
-                      <motion.div
-                        className="absolute left-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700 overflow-hidden"
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        variants={userMenuVariants}
-                      >
-                        <motion.button
-                          onClick={handleAdminClick}
-                          className="block w-full text-right px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          whileHover={{ x: -4 }}
-                        >
-                          لوحة التحكم
-                        </motion.button>
-                        <motion.button
-                          onClick={handleLogout}
-                          className="block w-full text-right px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-end gap-2"
-                          whileHover={{ x: -4 }}
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>تسجيل الخروج</span>
-                        </motion.button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:border-red-300"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>خروج</span>
+                  </Button>
                 </div>
               ) : (
                 <div className="flex gap-2">
@@ -394,6 +368,26 @@ const Header = () => {
                       </Button>
                     </motion.div>
                   )}
+                  {isAuthenticated && (
+                    <motion.div
+                      className="pt-2 border-t mt-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * (menuItems.length + 1) }}
+                    >
+                      <Button
+                        variant="outline"
+                        className="w-full font-arabic text-red-600 hover:text-red-700 hover:border-red-300 flex items-center justify-center gap-2"
+                        onClick={() => {
+                          handleLogout();
+                          setIsMenuOpen(false);
+                        }}
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>تسجيل الخروج</span>
+                      </Button>
+                    </motion.div>
+                  )}
                 </nav>
               </motion.div>
             )}
@@ -403,17 +397,6 @@ const Header = () => {
       {showLoginDialog && (
         <LoginDialog onClose={() => setShowLoginDialog(false)} />
       )}
-      <AnimatePresence>
-        {showUserMenu && (
-          <motion.div
-            className="fixed inset-0 z-40"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowUserMenu(false)}
-          />
-        )}
-      </AnimatePresence>
     </>
   );
 };

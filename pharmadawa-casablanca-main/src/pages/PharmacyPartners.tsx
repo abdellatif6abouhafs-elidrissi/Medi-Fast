@@ -57,25 +57,20 @@ const PharmacyPartners = () => {
     const fetchPharmacies = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_API_BASE_URL || "http://localhost:4000"
-          }/api/pharmacies`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000'}/api/pharmacies`, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch pharmacies");
+          throw new Error('Failed to fetch pharmacies');
         }
 
         const data = await response.json();
         setPartnerPharmacies(data.pharmacies || []);
       } catch (error) {
-        console.error("Error fetching pharmacies:", error);
+        console.error('Error fetching pharmacies:', error);
         toast({
           title: "خطأ",
           description: "فشل في تحميل قائمة الصيدليات",
@@ -118,13 +113,11 @@ const PharmacyPartners = () => {
     try {
       // Register admin and create pharmacy
       const response = await fetch(
-        `${
-          import.meta.env.VITE_API_BASE_URL || "http://localhost:4000"
-        }/api/auth/register`,
+        `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000'}/api/auth/register`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             name: joinFormData.ownerName,
@@ -132,7 +125,7 @@ const PharmacyPartners = () => {
             password: joinFormData.password,
             phone: joinFormData.phone,
             address: joinFormData.address,
-            role: "admin",
+            role: 'admin',
             pharmacyName: joinFormData.pharmacyName,
             pharmacySpecialties: joinFormData.specialties,
             pharmacyWorkingHours: joinFormData.workingHours,
@@ -144,40 +137,13 @@ const PharmacyPartners = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to register");
+        throw new Error(data.message || 'Failed to register');
       }
 
       toast({
         title: "تم إنشاء الحساب بنجاح!",
         description: "يمكنك الآن إدارة صيدليتك من لوحة التحكم",
       });
-
-      // Refresh the pharmacies list
-      const fetchPharmacies = async () => {
-        try {
-          const response = await fetch(
-            `${
-              import.meta.env.VITE_API_BASE_URL || "http://localhost:4000"
-            }/api/pharmacies`,
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error("Failed to fetch pharmacies");
-          }
-
-          const pharmaciesData = await response.json();
-          setPartnerPharmacies(pharmaciesData.pharmacies || []);
-        } catch (error) {
-          console.error("Error fetching pharmacies:", error);
-        }
-      };
-
-      await fetchPharmacies();
 
       // Reset form
       setJoinFormData({
@@ -195,7 +161,7 @@ const PharmacyPartners = () => {
       });
       setShowJoinForm(false);
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error('Registration error:', error);
       toast({
         title: "حدث خطأ",
         description: "لم نتمكن من إنشاء الحساب. يرجى المحاولة مرة أخرى",
@@ -205,11 +171,7 @@ const PharmacyPartners = () => {
   };
 
   const statistics = [
-    {
-      icon: Building2,
-      number: String(partnerPharmacies.length),
-      label: "صيدلية شريكة",
-    },
+    { icon: Building2, number: String(partnerPharmacies.length), label: "صيدلية شريكة" },
     { icon: Users, number: "500+", label: "عميل راض" },
     { icon: Star, number: "4.8", label: "تقييم متوسط" },
     { icon: CheckCircle, number: "99%", label: "معدل النجاح" },
@@ -292,32 +254,24 @@ const PharmacyPartners = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Pharmacy Details */}
                   <div className="space-y-2">
-                    <Label htmlFor="pharmacyName" className="font-arabic">
-                      اسم الصيدلية *
-                    </Label>
+                    <Label htmlFor="pharmacyName" className="font-arabic">اسم الصيدلية *</Label>
                     <Input
                       id="pharmacyName"
                       placeholder="أدخل اسم الصيدلية"
                       value={joinFormData.pharmacyName}
-                      onChange={(e) =>
-                        handleJoinInputChange("pharmacyName", e.target.value)
-                      }
+                      onChange={(e) => handleJoinInputChange("pharmacyName", e.target.value)}
                       className="font-arabic"
                       required
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="ownerName" className="font-arabic">
-                      اسم المالك *
-                    </Label>
+                    <Label htmlFor="ownerName" className="font-arabic">اسم المالك *</Label>
                     <Input
                       id="ownerName"
                       placeholder="أدخل اسم المالك"
                       value={joinFormData.ownerName}
-                      onChange={(e) =>
-                        handleJoinInputChange("ownerName", e.target.value)
-                      }
+                      onChange={(e) => handleJoinInputChange("ownerName", e.target.value)}
                       className="font-arabic"
                       required
                     />
@@ -325,16 +279,12 @@ const PharmacyPartners = () => {
 
                   {/* Contact Information */}
                   <div className="space-y-2">
-                    <Label htmlFor="joinPhone" className="font-arabic">
-                      رقم الهاتف *
-                    </Label>
+                    <Label htmlFor="joinPhone" className="font-arabic">رقم الهاتف *</Label>
                     <Input
                       id="joinPhone"
                       placeholder="0612345678"
                       value={joinFormData.phone}
-                      onChange={(e) =>
-                        handleJoinInputChange("phone", e.target.value)
-                      }
+                      onChange={(e) => handleJoinInputChange("phone", e.target.value)}
                       className="font-arabic"
                       dir="ltr"
                       required
@@ -342,17 +292,13 @@ const PharmacyPartners = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="joinEmail" className="font-arabic">
-                      البريد الإلكتروني *
-                    </Label>
+                    <Label htmlFor="joinEmail" className="font-arabic">البريد الإلكتروني *</Label>
                     <Input
                       id="joinEmail"
                       type="email"
                       placeholder="pharmacy@example.com"
                       value={joinFormData.email}
-                      onChange={(e) =>
-                        handleJoinInputChange("email", e.target.value)
-                      }
+                      onChange={(e) => handleJoinInputChange("email", e.target.value)}
                       className="font-arabic"
                       dir="ltr"
                       required
@@ -361,17 +307,13 @@ const PharmacyPartners = () => {
 
                   {/* Password Field */}
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="font-arabic">
-                      كلمة المرور *
-                    </Label>
+                    <Label htmlFor="password" className="font-arabic">كلمة المرور *</Label>
                     <Input
                       id="password"
                       type="password"
                       placeholder="أدخل كلمة المرور"
                       value={joinFormData.password}
-                      onChange={(e) =>
-                        handleJoinInputChange("password", e.target.value)
-                      }
+                      onChange={(e) => handleJoinInputChange("password", e.target.value)}
                       className="font-arabic"
                       required
                     />
@@ -379,47 +321,35 @@ const PharmacyPartners = () => {
 
                   {/* Working Hours */}
                   <div className="space-y-2">
-                    <Label htmlFor="workingHours" className="font-arabic">
-                      ساعات العمل
-                    </Label>
+                    <Label htmlFor="workingHours" className="font-arabic">ساعات العمل</Label>
                     <Input
                       id="workingHours"
                       placeholder="مثال: 8:00 ص - 9:00 م"
                       value={joinFormData.workingHours}
-                      onChange={(e) =>
-                        handleJoinInputChange("workingHours", e.target.value)
-                      }
+                      onChange={(e) => handleJoinInputChange("workingHours", e.target.value)}
                       className="font-arabic"
                     />
                   </div>
 
                   {/* License Number */}
                   <div className="space-y-2">
-                    <Label htmlFor="license" className="font-arabic">
-                      رقم الترخيص
-                    </Label>
+                    <Label htmlFor="license" className="font-arabic">رقم الترخيص</Label>
                     <Input
                       id="license"
                       placeholder="رقم ترخيص الصيدلية"
                       value={joinFormData.license}
-                      onChange={(e) =>
-                        handleJoinInputChange("license", e.target.value)
-                      }
+                      onChange={(e) => handleJoinInputChange("license", e.target.value)}
                       className="font-arabic"
                     />
                   </div>
 
                   {/* Pharmacy Icon */}
                   <div className="space-y-2">
-                    <Label htmlFor="image" className="font-arabic">
-                      أيقونة الصيدلية
-                    </Label>
+                    <Label htmlFor="image" className="font-arabic">أيقونة الصيدلية</Label>
                     <select
                       id="image"
                       value={joinFormData.image}
-                      onChange={(e) =>
-                        handleJoinInputChange("image", e.target.value)
-                      }
+                      onChange={(e) => handleJoinInputChange("image", e.target.value)}
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     >
                       <option value="🏪">🏪 صيدلية</option>
@@ -434,16 +364,12 @@ const PharmacyPartners = () => {
 
                 {/* Full Width Fields */}
                 <div className="space-y-2">
-                  <Label htmlFor="joinAddress" className="font-arabic">
-                    العنوان الكامل *
-                  </Label>
+                  <Label htmlFor="joinAddress" className="font-arabic">العنوان الكامل *</Label>
                   <Textarea
                     id="joinAddress"
                     placeholder="أدخل عنوان الصيدلية بالتفصيل"
                     value={joinFormData.address}
-                    onChange={(e) =>
-                      handleJoinInputChange("address", e.target.value)
-                    }
+                    onChange={(e) => handleJoinInputChange("address", e.target.value)}
                     className="font-arabic"
                     rows={2}
                     required
@@ -451,9 +377,7 @@ const PharmacyPartners = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="specialties" className="font-arabic">
-                    التخصصات
-                  </Label>
+                  <Label htmlFor="specialties" className="font-arabic">التخصصات</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       "أدوية عامة",
@@ -465,19 +389,14 @@ const PharmacyPartners = () => {
                       "مكملات غذائية",
                       "أعشاب طبية",
                     ].map((specialty) => (
-                      <label
-                        key={specialty}
-                        className="flex items-center space-x-2 space-x-reverse"
-                      >
+                      <label key={specialty} className="flex items-center space-x-2 space-x-reverse">
                         <input
                           type="checkbox"
                           checked={joinFormData.specialties.includes(specialty)}
                           onChange={(e) => {
                             const specialties = e.target.checked
                               ? [...joinFormData.specialties, specialty]
-                              : joinFormData.specialties.filter(
-                                  (s) => s !== specialty
-                                );
+                              : joinFormData.specialties.filter(s => s !== specialty);
                             handleJoinInputChange("specialties", specialties);
                           }}
                           className="form-checkbox h-4 w-4"
@@ -489,25 +408,18 @@ const PharmacyPartners = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description" className="font-arabic">
-                    وصف الخدمات
-                  </Label>
+                  <Label htmlFor="description" className="font-arabic">وصف الخدمات</Label>
                   <Textarea
                     id="description"
                     placeholder="صف الخدمات والتخصصات التي تقدمها صيدليتك"
                     value={joinFormData.description}
-                    onChange={(e) =>
-                      handleJoinInputChange("description", e.target.value)
-                    }
+                    onChange={(e) => handleJoinInputChange("description", e.target.value)}
                     className="font-arabic"
                     rows={3}
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full font-arabic text-lg py-3"
-                >
+                <Button type="submit" className="w-full font-arabic text-lg py-3">
                   إنشاء حساب صيدلية
                 </Button>
               </form>
@@ -524,15 +436,11 @@ const PharmacyPartners = () => {
           {loading ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="font-arabic text-muted-foreground">
-                جاري تحميل الصيدليات...
-              </p>
+              <p className="font-arabic text-muted-foreground">جاري تحميل الصيدليات...</p>
             </div>
           ) : partnerPharmacies.length === 0 ? (
             <div className="text-center py-12">
-              <p className="font-arabic text-muted-foreground">
-                لا توجد صيدليات شريكة حالياً
-              </p>
+              <p className="font-arabic text-muted-foreground">لا توجد صيدليات شريكة حالياً</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -595,16 +503,14 @@ const PharmacyPartners = () => {
                           التخصصات:
                         </h4>
                         <div className="flex flex-wrap gap-2">
-                          {(pharmacy.specialties || []).map(
-                            (specialty, idx) => (
-                              <span
-                                key={idx}
-                                className="px-2 py-1 bg-primary/10 text-primary text-xs font-arabic rounded-full"
-                              >
-                                {specialty}
-                              </span>
-                            )
-                          )}
+                          {pharmacy.specialties.map((specialty, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 bg-primary/10 text-primary text-xs font-arabic rounded-full"
+                            >
+                              {specialty}
+                            </span>
+                          ))}
                         </div>
                       </div>
                     </div>

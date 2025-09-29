@@ -29,10 +29,13 @@ import NotFound from "./pages/NotFound";
 import ProductManagement from "./pages/admin/ProductManagement";
 import CustomerManagement from "./pages/admin/CustomerManagement";
 import OrderManagement from "./pages/admin/OrderManagement";
-import OrderDetails from "./pages/admin/requests/[id]";
+import OrderDetails from "./pages/admin/OrderDetails";
 import Reports from "./pages/admin/Reports";
 import Categories from "./pages/admin/Categories";
 import Settings from "./pages/admin/Settings";
+import PharmacyEdit from "./pages/admin/PharmacyEdit";
+import MedicineManagement from "./pages/admin/MedicineManagement";
+import TestComponent from "./pages/admin/TestComponent";
 import OrderCompletion from "./pages/OrderCompletion";
 import PharmacyMedicines from "./pages/PharmacyMedicines";
 import Cart from "./components/Cart";
@@ -60,7 +63,7 @@ const RequireAuth = ({
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // Check if user has required role
@@ -72,6 +75,17 @@ const RequireAuth = ({
     return <Navigate to={redirectTo} replace />;
   }
 
+  return children;
+};
+
+// Component to restrict unauthenticated users to home page only
+const PublicRoute = ({ children }: { children: JSX.Element }) => {
+  const { isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
   return children;
 };
 
@@ -125,16 +139,38 @@ const App = () => {
                       <main className="flex-1">
                         <Routes>
                           <Route path="/" element={<Home />} />
-                          <Route path="/order" element={<Order />} />
+                          <Route 
+                            path="/order" 
+                            element={
+                              <RequireAuth roles={["user"]}>
+                                <Order />
+                              </RequireAuth>
+                            } 
+                          />
                           <Route
                             path="/pharmacy-partners"
-                            element={<PharmacyPartners />}
+                            element={
+                              <PublicRoute>
+                                <PharmacyPartners />
+                              </PublicRoute>
+                            }
                           />
                           <Route
                             path="/pharmacy/:id/medicines"
-                            element={<PharmacyMedicines />}
+                            element={
+                              <RequireAuth roles={["user"]}>
+                                <PharmacyMedicines />
+                              </RequireAuth>
+                            }
                           />
-                          <Route path="/faqs" element={<FAQs />} />
+                          <Route 
+                            path="/faqs" 
+                            element={
+                              <PublicRoute>
+                                <FAQs />
+                              </PublicRoute>
+                            } 
+                          />
                           <Route path="/login" element={<Login />} />
                           <Route path="/register" element={<Register />} />
                           <Route
@@ -148,7 +184,7 @@ const App = () => {
                           <Route
                             path="/order-completion"
                             element={
-                              <RequireAuth>
+                              <RequireAuth roles={["user"]}>
                                 <OrderCompletion />
                               </RequireAuth>
                             }
@@ -156,7 +192,7 @@ const App = () => {
                           <Route
                             path="/payment"
                             element={
-                              <RequireAuth>
+                              <RequireAuth roles={["user"]}>
                                 <PaymentPage />
                               </RequireAuth>
                             }
@@ -164,7 +200,7 @@ const App = () => {
                           <Route
                             path="/order-confirmation"
                             element={
-                              <RequireAuth>
+                              <RequireAuth roles={["user"]}>
                                 <OrderConfirmation />
                               </RequireAuth>
                             }
@@ -198,7 +234,7 @@ const App = () => {
 
                           {/* Admin-specific routes */}
                           <Route
-                            path="/admin/requests/:id"
+                            path="/admin/orders/:id"
                             element={
                               <RequireAuth roles={["admin"]}>
                                 <OrderDetails />
@@ -250,6 +286,22 @@ const App = () => {
                             element={
                               <RequireAuth roles={["admin"]}>
                                 <Settings />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/admin/pharmacy/edit"
+                            element={
+                              <RequireAuth roles={["admin"]}>
+                                <PharmacyEdit />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/admin/medicines"
+                            element={
+                              <RequireAuth roles={["admin"]}>
+                                <MedicineManagement />
                               </RequireAuth>
                             }
                           />

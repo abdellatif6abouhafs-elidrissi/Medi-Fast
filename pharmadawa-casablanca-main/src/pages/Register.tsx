@@ -6,6 +6,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -23,6 +24,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const formSchema = z
   .object({
@@ -38,10 +46,34 @@ const formSchema = z
     city: z.string().optional(),
     postalCode: z.string().optional(),
     role: z.enum(["user", "admin"]).default("user"),
+    // Pharmacy fields (required only for admin role)
+    pharmacyName: z.string().optional(),
+    pharmacyAddress: z.string().optional(),
+    pharmacyWorkingHours: z.string().optional(),
+    pharmacyImage: z.string().optional(),
+    pharmacySpecialties: z.array(z.string()).optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "كلمات المرور غير متطابقة",
     path: ["confirmPassword"],
+  })
+  .refine((data) => {
+    if (data.role === "admin") {
+      return data.pharmacyName && data.pharmacyName.length > 0;
+    }
+    return true;
+  }, {
+    message: "اسم الصيدلية مطلوب للمدراء",
+    path: ["pharmacyName"],
+  })
+  .refine((data) => {
+    if (data.role === "admin") {
+      return data.pharmacyAddress && data.pharmacyAddress.length > 0;
+    }
+    return true;
+  }, {
+    message: "عنوان الصيدلية مطلوب للمدراء",
+    path: ["pharmacyAddress"],
   });
 
 type RegisterFormValues = z.infer<typeof formSchema>;
@@ -67,8 +99,15 @@ const Register = () => {
       city: "",
       postalCode: "",
       role: "user",
+      pharmacyName: "",
+      pharmacyAddress: "",
+      pharmacyWorkingHours: "8:00 ص - 9:00 م",
+      pharmacyImage: "🏪",
+      pharmacySpecialties: [],
     },
   });
+
+  const watchRole = form.watch("role");
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
@@ -80,7 +119,7 @@ const Register = () => {
       });
 
       // Call your auth register function
-      const result = await authRegister({
+      const registrationData: any = {
         email: data.email,
         password: data.password,
         name: `${data.firstName} ${data.lastName}`.trim(),
@@ -89,7 +128,19 @@ const Register = () => {
         city: data.city,
         postalCode: data.postalCode,
         role: data.role,
-      });
+      };
+
+      // Add pharmacy data if the user is registering as admin
+      if (data.role === "admin") {
+        registrationData.pharmacyName = data.pharmacyName;
+        registrationData.pharmacySpecialties = data.pharmacySpecialties || [];
+        registrationData.pharmacyWorkingHours = data.pharmacyWorkingHours;
+        registrationData.pharmacyImage = data.pharmacyImage;
+        // Use pharmacy address as the main address for admin
+        registrationData.address = data.pharmacyAddress;
+      }
+
+      const result = await authRegister(registrationData);
 
       if (!result.success) {
         const errorMessages = {
@@ -114,15 +165,18 @@ const Register = () => {
       }
 
       setRegistrationSuccess(true);
-      toast({
-        title: "تم التسجيل بنجاح",
-        description: "تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول.",
-      });
-
-      // Redirect to login or dashboard based on role
+      
       if (data.role === "admin") {
+        toast({
+          title: "تم إنشاء حساب الصيدلية بنجاح!",
+          description: "تم إنشاء حسابك وصيدليتك بنجاح. يمكنك الآن إدارة صيدليتك من لوحة التحكم.",
+        });
         navigate("/admin/dashboard");
       } else {
+        toast({
+          title: "تم التسجيل بنجاح",
+          description: "تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول.",
+        });
         navigate("/login");
       }
     } catch (error: any) {
@@ -140,7 +194,9 @@ const Register = () => {
   return (
     <div className="container mx-auto px-4 py-8" data-aos="fade-up">
       <div
-        className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6"
+        className={`mx-auto bg-white rounded-lg shadow-md p-6 ${
+          watchRole === "admin" ? "max-w-4xl" : "max-w-md"
+        }`}
         data-aos="fade-up"
         data-aos-delay="100"
       >
@@ -184,19 +240,137 @@ const Register = () => {
                 <FormItem>
                   <FormLabel>نوع الحساب</FormLabel>
                   <FormControl>
-                    <select
-                      {...field}
-                      className="w-full border rounded-md px-3 py-2 bg-white text-gray-900"
-                      disabled={isLoading}
-                    >
-                      <option value="user">مستخدم</option>
-                      <option value="admin">مدير</option>
-                    </select>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="اختر نوع الحساب" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="user">مستخدم عادي</SelectItem>
+                        <SelectItem value="admin">مدير صيدلية</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {/* Pharmacy Fields - Show only when admin role is selected */}
+            {watchRole === "admin" && (
+              <div className="space-y-4 p-4 border rounded-lg bg-blue-50">
+                <h3 className="text-lg font-semibold text-blue-800 mb-4">معلومات الصيدلية</h3>
+                
+                <FormField
+                  control={form.control}
+                  name="pharmacyName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>اسم الصيدلية *</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="أدخل اسم الصيدلية" disabled={isLoading} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="pharmacyAddress"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>عنوان الصيدلية *</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} placeholder="أدخل عنوان الصيدلية بالتفصيل" disabled={isLoading} rows={2} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="pharmacyWorkingHours"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ساعات العمل</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="مثال: 8:00 ص - 9:00 م" disabled={isLoading} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="pharmacyImage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>أيقونة الصيدلية</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="🏪">🏪 صيدلية</SelectItem>
+                              <SelectItem value="💊">💊 دواء</SelectItem>
+                              <SelectItem value="👨‍⚕️">👨‍⚕️ طبيب</SelectItem>
+                              <SelectItem value="🌿">🌿 طبيعي</SelectItem>
+                              <SelectItem value="❤️">❤️ صحة</SelectItem>
+                              <SelectItem value="🌟">🌟 نجمة</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="pharmacySpecialties"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>التخصصات</FormLabel>
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        {[
+                          "أدوية عامة",
+                          "أدوية الأطفال", 
+                          "رعاية كبار السن",
+                          "أدوية القلب",
+                          "مستحضرات التجميل",
+                          "أجهزة طبية",
+                          "مكملات غذائية",
+                          "أعشاب طبية"
+                        ].map((specialty) => (
+                          <label key={specialty} className="flex items-center space-x-2 space-x-reverse text-sm">
+                            <input
+                              type="checkbox"
+                              checked={field.value?.includes(specialty) || false}
+                              onChange={(e) => {
+                                const currentSpecialties = field.value || [];
+                                const newSpecialties = e.target.checked
+                                  ? [...currentSpecialties, specialty]
+                                  : currentSpecialties.filter(s => s !== specialty);
+                                field.onChange(newSpecialties);
+                              }}
+                              className="form-checkbox h-4 w-4"
+                              disabled={isLoading}
+                            />
+                            <span>{specialty}</span>
+                          </label>
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
             <FormField
               control={form.control}
@@ -255,19 +429,22 @@ const Register = () => {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>العنوان</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled={isLoading} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Address field - only show for regular users */}
+            {watchRole === "user" && (
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>العنوان</FormLabel>
+                    <FormControl>
+                      <Input {...field} disabled={isLoading} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
@@ -320,10 +497,10 @@ const Register = () => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  جاري التسجيل...
+                  {watchRole === "admin" ? "جاري إنشاء حساب الصيدلية..." : "جاري التسجيل..."}
                 </div>
               ) : (
-                "تسجيل حساب جديد"
+                watchRole === "admin" ? "إنشاء حساب صيدلية" : "تسجيل حساب جديد"
               )}
             </Button>
           </form>
