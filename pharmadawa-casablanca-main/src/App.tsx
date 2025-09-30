@@ -34,6 +34,8 @@ import Reports from "./pages/admin/Reports";
 import Categories from "./pages/admin/Categories";
 import Settings from "./pages/admin/Settings";
 import PharmacyEdit from "./pages/admin/PharmacyEdit";
+import PharmacyEditSimple from "./pages/admin/PharmacyEditSimple";
+import TestPage from "./pages/admin/TestPage";
 import MedicineManagement from "./pages/admin/MedicineManagement";
 import TestComponent from "./pages/admin/TestComponent";
 import OrderCompletion from "./pages/OrderCompletion";
@@ -163,14 +165,7 @@ const App = () => {
                               </RequireAuth>
                             }
                           />
-                          <Route 
-                            path="/faqs" 
-                            element={
-                              <PublicRoute>
-                                <FAQs />
-                              </PublicRoute>
-                            } 
-                          />
+                          <Route path="/faqs" element={<FAQs />} />
                           <Route path="/login" element={<Login />} />
                           <Route path="/register" element={<Register />} />
                           <Route

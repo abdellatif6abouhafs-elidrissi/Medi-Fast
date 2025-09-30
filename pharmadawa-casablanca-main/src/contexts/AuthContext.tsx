@@ -132,41 +132,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     localStorage.removeItem("user");
-    localStorage.removeItem("isAuthenticated");
     localStorage.removeItem("token");
     setUser(null);
     setIsAuthenticated(false);
   };
 
-  const updateUser = async (updatedUser: User) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (token && updatedUser.id) {
-        const res = await fetch(`${API_BASE}/api/users/${updatedUser.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(updatedUser),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          const mapped = mapBackendUser(data.user);
-          setUser(mapped);
-          localStorage.setItem("user", JSON.stringify(mapped));
-          return;
-        }
-      }
-    } catch (e) {
-      console.error("Failed to update user via API, falling back to local", e);
-    }
+  const updateUser = (updatedUser: User) => {
+    // Update locally ONLY - no API calls to avoid hanging
+    console.log("Updating user locally:", updatedUser);
     setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
   const register = async (userData: {
-    email: string;
     password: string;
     name: string;
     phone: string;
