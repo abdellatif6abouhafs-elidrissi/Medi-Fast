@@ -15,6 +15,25 @@
     }
   };
 
+  // Get pharmacy by ID
+  const getPharmacyById = async (req, res) => {
+    try {
+      const pharmacy = await Pharmacy.findById(req.params.id).populate(
+        "admin",
+        "name email phone"
+      );
+      
+      if (!pharmacy) {
+        return res.status(404).json({ message: "Pharmacy not found" });
+      }
+      
+      res.json(pharmacy);
+    } catch (error) {
+      console.error("Error fetching pharmacy:", error);
+      res.status(500).json({ message: "Error fetching pharmacy" });
+    }
+  };
+
   // Get pharmacy medicines
   const getPharmacyMedicines = async (req, res) => {
     try {
@@ -145,6 +164,7 @@
 
   module.exports = {
     getAllPharmacies,
+    getPharmacyById,
     getPharmacyMedicines,
     updatePharmacyMedicines,
     createPharmacy,

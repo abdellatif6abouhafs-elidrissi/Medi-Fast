@@ -137,11 +137,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(false);
   };
 
-  const updateUser = (updatedUser: User) => {
-    // Update locally ONLY - no API calls to avoid hanging
-    console.log("Updating user locally:", updatedUser);
-    setUser(updatedUser);
-    localStorage.setItem("user", JSON.stringify(updatedUser));
+  const updateUser = async (updatedUser: User) => {
+    try {
+      const token = localStorage.getItem("token");
+      
+      // Always update locally first for immediate UI feedback
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      
+      // Try to sync with backend if token exists
+      if (token && updatedUser.id) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
+        try {
+          const res = await fetch(`${API_BASE}/api/users/${updatedUser.id}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(updatedUser),
+            signal: controller.signal,
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (res.ok) {
+            const data = await res.json();
+            const mapped = mapBackendUser(data.user);
+            setUser(mapped);
+            localStorage.setItem("user", JSON.stringify(mapped));
+            console.log("User updated successfully in backend");
+          } else {
+            console.log("Backend update failed, but local update succeeded");
+          }
+        } catch (fetchError) {
+          console.log("Could not sync with backend, local update succeeded:", fetchError);
+        }
+      }
+    } catch (error) {
+      console.error("Error in updateUser:", error);
+      // Even if something fails, we've already updated locally
+    }
   };
 
   const register = async (userData: {

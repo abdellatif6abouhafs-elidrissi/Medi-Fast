@@ -99,7 +99,7 @@ const AdminDashboard = () => {
         const pharmacyId = user?.pharmacy || user?.pharmacyId || user?.id;
         
         try {
-          const pharmacyResponse = await fetch(`${API_BASE}/api/pharmacy/${pharmacyId}`, {
+          const pharmacyResponse = await fetch(`${API_BASE}/api/pharmacies/${pharmacyId}`, {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 const express = require("express");
 const {
   getAllPharmacies,
+  getPharmacyById,
   getPharmacyMedicines,
   updatePharmacyMedicines,
   createPharmacy,
@@ -12,6 +13,7 @@ const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 const router = express.Router();
 
 router.get("/", getAllPharmacies);
+router.get("/:id", authMiddleware, getPharmacyById);
 router.get("/:id/medicines", getPharmacyMedicines);
 router.put("/:id/medicines", adminMiddleware, updatePharmacyMedicines);
 router.post("/", adminMiddleware, createPharmacy);
