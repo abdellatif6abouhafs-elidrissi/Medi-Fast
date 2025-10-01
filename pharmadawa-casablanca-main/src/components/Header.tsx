@@ -96,37 +96,9 @@ const Header = () => {
   // Navigation menu items
   const isAdmin = isAuthenticated && user?.role === "admin";
 
-  // Add notification bell and theme toggle for authenticated users
-  const navItems = (
-    <div className="flex items-center gap-4"> 
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      >
-        {theme === "dark" ? (
-          <Sun className="h-5 w-5" />
-        ) : (
-          <Moon className="h-5 w-5" />
-        )}
-      </Button>
-    </div>
-  );
-
   const menuItems = [
     // Always show Home link
     { href: "/", label: "الرئيسية", isActive: location.pathname === "/" },
-    
-    // Show FAQ only for authenticated users or on home page
-    ...(isAuthenticated || location.pathname === "/"
-      ? [
-          {
-            href: "/faqs",
-            label: "الأسئلة الشائعة",
-            isActive: location.pathname === "/faqs",
-          },
-        ]
-      : []),
     
     // Only show order link for authenticated non-admin users
     ...(isAuthenticated && !isAdmin
@@ -150,6 +122,16 @@ const Header = () => {
         ]
       : []),
     
+    // Show FAQ at the end - only for authenticated users or on home page
+    ...(isAuthenticated || location.pathname === "/"
+      ? [
+          {
+            href: "/faqs",
+            label: "الأسئلة الشائعة",
+            isActive: location.pathname === "/faqs",
+          },
+        ]
+      : []),
     
   ].filter(Boolean);
 
@@ -281,11 +263,6 @@ const Header = () => {
                   </Button>
                 </div>
               )}
-              {!isAdmin && isAuthenticated && (
-                <Button asChild className="font-arabic animate-pulse-glow">
-                  <Link to="/order">اطلب دواءك الآن</Link>
-                </Button>
-              )}
             </div>
 
             {/* Theme toggle */}
@@ -350,30 +327,15 @@ const Header = () => {
                             : "text-foreground"
                         }`}
                       >
-                        {item.label}
+                        <span className="font-semibold">{item.label}</span>
                       </Link>
                     </motion.div>
                   ))}
-                  {!isAdmin && isAuthenticated && (
-                    <motion.div
-                      className="pt-2 border-t mt-2"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 * menuItems.length }}
-                    >
-                      <Button asChild className="w-full font-arabic">
-                        <Link to="/order" onClick={() => setIsMenuOpen(false)}>
-                          اطلب دواءك الآن
-                        </Link>
-                      </Button>
-                    </motion.div>
-                  )}
                   {isAuthenticated && (
                     <motion.div
                       className="pt-2 border-t mt-2"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 * (menuItems.length + 1) }}
                     >
                       <Button
                         variant="outline"

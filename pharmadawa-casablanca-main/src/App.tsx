@@ -40,6 +40,7 @@ import MedicineManagement from "./pages/admin/MedicineManagement";
 import TestComponent from "./pages/admin/TestComponent";
 import OrderCompletion from "./pages/OrderCompletion";
 import PharmacyMedicines from "./pages/PharmacyMedicines";
+import AllMedicines from "./pages/AllMedicines";
 import Cart from "./components/Cart";
 import PaymentPage from "./pages/payment/PaymentPage";
 import OrderConfirmation from "./pages/order-confirmation/OrderConfirmation";
@@ -164,6 +165,14 @@ const App = () => {
                                 <PharmacyMedicines />
                               </RequireAuth>
                             }
+                          />
+                          <Route 
+                            path="/medicines" 
+                            element={
+                              <RequireAuth roles={["user"]}>
+                                <AllMedicines />
+                              </RequireAuth>
+                            } 
                           />
                           <Route path="/faqs" element={<FAQs />} />
                           <Route path="/login" element={<Login />} />
