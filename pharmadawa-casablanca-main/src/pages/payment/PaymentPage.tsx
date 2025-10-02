@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,8 +7,36 @@ import { Label } from "@/components/ui/label";
 import { Check, CreditCard, Loader2, X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
+interface Medicine {
+  _id: string;
+  name: string;
+  description?: string;
+  price?: number;
+  category?: string;
+  inStock: boolean;
+  stock?: number;
+  pharmacyId: string;
+  pharmacyName: string;
+}
+
+interface CartItem {
+  medicine: {
+    _id: string;
+    name: string;
+    price?: number;
+    inStock: boolean;
+    pharmacyId: string;
+    pharmacyName: string;
+    description?: string;
+    category?: string;
+    stock?: number;
+  };
+  quantity: number;
+}
+
 const PaymentPage = () => {
-  const { items, getTotalPrice, clearCart } = useCart();
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isCartLoaded, setIsCartLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
   const [cardDetails, setCardDetails] = useState({
@@ -21,6 +48,42 @@ const PaymentPage = () => {
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Load cart from localStorage
+  useEffect(() => {
+    console.log('Loading cart from localStorage...');
+    const savedCart = localStorage.getItem('medicineCart');
+    console.log('Saved cart from localStorage:', savedCart);
+    
+    if (savedCart) {
+      try {
+        const parsed = JSON.parse(savedCart);
+        console.log('Parsed cart:', parsed);
+        setCartItems(parsed);
+      } catch (error) {
+        console.error('Error loading cart:', error);
+      }
+    } else {
+      console.log('No cart found in localStorage');
+    }
+    
+    // Mark cart as loaded
+    setIsCartLoaded(true);
+  }, []);
+
+  // Calculate total price
+  const getTotalPrice = () => {
+    return cartItems.reduce((total, item) => {
+      const price = item.medicine.price || 0;
+      return total + (price * item.quantity);
+    }, 0);
+  };
+
+  // Clear cart
+  const clearCart = () => {
+    setCartItems([]);
+    localStorage.removeItem('medicineCart');
+  };
 
   const handleCardInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -134,14 +197,27 @@ const PaymentPage = () => {
     }
   };
 
-  // Redirect to home if cart is empty
+  // Redirect to home if cart is empty (only after cart has been loaded)
   useEffect(() => {
-    if (items.length === 0) {
+    if (isCartLoaded && cartItems.length === 0) {
+      console.log('Cart is empty after loading, redirecting to home');
       navigate('/');
     }
-  }, [items.length, navigate]);
+  }, [isCartLoaded, cartItems.length, navigate]);
 
-  if (items.length === 0) {
+  // Show loading state while cart is being loaded
+  if (!isCartLoaded) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p>جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (cartItems.length === 0) {
     return null;
   }
 
@@ -257,12 +333,12 @@ const PaymentPage = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    {items.map((item) => (
-                      <div key={item.id} className="flex justify-between">
+                    {cartItems.map((item) => (
+                      <div key={item.medicine._id} className="flex justify-between">
                         <span className="text-muted-foreground">
-                          {item.name} × {item.quantity}
+                          {item.medicine.name} × {item.quantity}
                         </span>
-                        <span>{item.price * item.quantity} درهم</span>
+                        <span>{(item.medicine.price || 0) * item.quantity} درهم</span>
                       </div>
                     ))}
                   </div>

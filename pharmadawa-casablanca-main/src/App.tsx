@@ -41,6 +41,7 @@ import TestComponent from "./pages/admin/TestComponent";
 import OrderCompletion from "./pages/OrderCompletion";
 import PharmacyMedicines from "./pages/PharmacyMedicines";
 import AllMedicines from "./pages/AllMedicines";
+import CartPage from "./pages/CartPage";
 import Cart from "./components/Cart";
 import PaymentPage from "./pages/payment/PaymentPage";
 import OrderConfirmation from "./pages/order-confirmation/OrderConfirmation";
@@ -130,11 +131,16 @@ const App = () => {
     <AuthProvider>
       <NotificationProvider>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             <LanguageProvider>
               <CartProvider>
                 <TooltipProvider>
-                  <BrowserRouter>
+                  <BrowserRouter
+                    future={{
+                      v7_startTransition: true,
+                      v7_relativeSplatPath: true
+                    }}
+                  >
                     <AOSInitializer />
                     <div className="flex flex-col min-h-screen">
                       <Header />
@@ -171,6 +177,14 @@ const App = () => {
                             element={
                               <RequireAuth roles={["user"]}>
                                 <AllMedicines />
+                              </RequireAuth>
+                            } 
+                          />
+                          <Route 
+                            path="/cart" 
+                            element={
+                              <RequireAuth roles={["user"]}>
+                                <CartPage />
                               </RequireAuth>
                             } 
                           />

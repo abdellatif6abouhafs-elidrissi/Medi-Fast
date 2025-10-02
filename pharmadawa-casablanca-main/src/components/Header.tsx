@@ -111,6 +111,17 @@ const Header = () => {
         ]
       : []),
     
+    // Show all medicines for authenticated non-admin users
+    ...(isAuthenticated && !isAdmin
+      ? [
+          {
+            href: "/medicines",
+            label: "جميع الأدوية",
+            isActive: location.pathname === "/medicines",
+          },
+        ]
+      : []),
+    
     // Show pharmacy partners only for authenticated users
     ...(isAuthenticated
       ? [
@@ -265,26 +276,20 @@ const Header = () => {
               )}
             </div>
 
-            {/* Theme toggle */}
-            <div className="flex items-center space-x-2 space-x-reverse">
-              {/* Theme Toggle */}
-              {/* <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="text-foreground hover:bg-accent/50"
-              aria-label="تبديل السمة"
-            >
-              {theme === "dark" ? (
-                <Sun className="h-5 w-5" />
-              ) : (
-                <Moon className="h-5 w-5" />
-              )}
-            </Button> */}
-            </div>
-
-            {/* Mobile menu toggle */}
+            {/* Mobile menu toggle and theme */}
             <div className="md:hidden flex items-center space-x-2 space-x-reverse">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleTheme}
+                className="w-9 h-9 p-0"
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-4 h-4" />
+                ) : (
+                  <Moon className="w-4 h-4" />
+                )}
+              </Button>
               <Button
                 variant="outline"
                 size="sm"

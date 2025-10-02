@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Pill, Search, Store, MapPin, Phone, Package, Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { Pill, Search, Store, MapPin, Phone, Package, Loader2, ShoppingCart, Plus } from "lucide-react";
 
 interface Medicine {
   _id: string;
@@ -24,6 +25,9 @@ const AllMedicines = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [categories, setCategories] = useState<string[]>([]);
+  const [cart, setCart] = useState<{ medicine: Medicine; quantity: number }[]>([]);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
@@ -70,6 +74,54 @@ const AllMedicines = () => {
     return matchesSearch && matchesCategory;
   });
 
+  // Add to cart function
+  const addToCart = (medicine: Medicine) => {
+    if (!medicine.inStock) {
+      toast({
+        title: "غير متوفر",
+        description: "هذا الدواء غير متوفر حالياً",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const existingItem = cart.find(item => item.medicine._id === medicine._id);
+    
+    if (existingItem) {
+      setCart(cart.map(item =>
+        item.medicine._id === medicine._id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      ));
+      toast({
+        title: "تم التحديث",
+        description: `تم زيادة كمية ${medicine.name}`,
+      });
+    } else {
+      setCart([...cart, { medicine, quantity: 1 }]);
+      toast({
+        title: "تمت الإضافة",
+        description: `تم إضافة ${medicine.name} للسلة`,
+      });
+    }
+  };
+
+  // Go to cart
+  const goToCart = () => {
+    if (cart.length === 0) {
+      toast({
+        title: "السلة فارغة",
+        description: "الرجاء إضافة أدوية إلى السلة أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Save cart to localStorage
+    localStorage.setItem('medicineCart', JSON.stringify(cart));
+    navigate('/cart');
+  };
+
   // Group medicines by pharmacy
   const medicinesByPharmacy = filteredMedicines.reduce((acc, medicine) => {
     const pharmacyName = medicine.pharmacyName || "صيدلية غير محددة";
@@ -95,15 +147,30 @@ const AllMedicines = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="mb-8 text-center">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <Pill className="h-10 w-10 text-primary" />
-          <h1 className="text-4xl font-bold text-gradient">جميع الأدوية المتاحة</h1>
+      {/* Header with Cart Badge */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Pill className="h-10 w-10 text-primary" />
+            <div>
+              <h1 className="text-4xl font-bold text-gradient">جميع الأدوية المتاحة</h1>
+              <p className="text-muted-foreground text-lg">
+                تصفح جميع الأدوية من صيدلياتنا الشريكة
+              </p>
+            </div>
+          </div>
+          
+          {/* Cart Badge */}
+          {cart.length > 0 && (
+            <Button onClick={goToCart} className="relative">
+              <ShoppingCart className="h-5 w-5 ml-2" />
+              السلة
+              <Badge className="absolute -top-2 -right-2 h-6 w-6 flex items-center justify-center p-0">
+                {cart.reduce((sum, item) => sum + item.quantity, 0)}
+              </Badge>
+            </Button>
+          )}
         </div>
-        <p className="text-muted-foreground text-lg">
-          تصفح جميع الأدوية من صيدلياتنا الشريكة
-        </p>
       </div>
 
       {/* Search and Filter */}
@@ -222,11 +289,27 @@ const AllMedicines = () => {
                           )}
                         </div>
 
-                        <Button asChild className="w-full mt-4" size="sm">
-                          <Link to={`/pharmacy/${medicine.pharmacyId}/medicines`}>
-                            عرض الصيدلية
-                          </Link>
-                        </Button>
+                        <div className="flex gap-2 mt-4">
+                          <Button
+                            onClick={() => addToCart(medicine)}
+                            disabled={!medicine.inStock}
+                            className="flex-1"
+                            size="sm"
+                          >
+                            <ShoppingCart className="h-4 w-4 ml-2" />
+                            أضف للسلة
+                          </Button>
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Link to={`/pharmacy/${medicine.pharmacyId}/medicines`}>
+                              <Store className="h-4 w-4 ml-2" />
+                              الصيدلية
+                            </Link>
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
